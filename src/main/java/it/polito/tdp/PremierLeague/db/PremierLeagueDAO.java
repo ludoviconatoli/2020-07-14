@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import it.polito.tdp.PremierLeague.model.Action;
 import it.polito.tdp.PremierLeague.model.Match;
 import it.polito.tdp.PremierLeague.model.Player;
@@ -36,25 +38,27 @@ public class PremierLeagueDAO {
 		}
 	}
 	
-	public List<Team> listAllTeams(){
+	public void listAllTeams(Map<Integer, Team> mappa){
 		String sql = "SELECT * FROM Teams";
-		List<Team> result = new ArrayList<Team>();
+		
 		Connection conn = DBConnect.getConnection();
 
 		try {
 			PreparedStatement st = conn.prepareStatement(sql);
 			ResultSet res = st.executeQuery();
 			while (res.next()) {
-
-				Team team = new Team(res.getInt("TeamID"), res.getString("Name"));
-				result.add(team);
+				if(!mappa.containsKey(res.getInt("TeamID"))) {
+					Team team = new Team(res.getInt("TeamID"), res.getString("Name"));
+					mappa.put(team.getTeamID(), team);
+				}
+				
 			}
 			conn.close();
-			return result;
+			
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return null;
+			
 		}
 	}
 	
@@ -112,4 +116,34 @@ public class PremierLeagueDAO {
 		}
 	}
 	
+	public List<Match> listAllMatchesPerSquadra(Team t){
+		String sql = "SELECT m.MatchID, m.TeamHomeID, m.TeamAwayID, m.teamHomeFormation, m.teamAwayFormation, m.resultOfTeamHome, m.date, t1.Name, t2.Name "
+				+ "FROM Matches m, Teams t1, Teams t2 "
+				+ "WHERE (m.TeamHomeID = ? OR m.TeamAwayID = ?)";
+		
+		List<Match> partite = new ArrayList<>();
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, t.getTeamID());
+			st.setInt(2, t.getTeamID());
+			
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				Match match = new Match(res.getInt("m.MatchID"), res.getInt("m.TeamHomeID"), res.getInt("m.TeamAwayID"), res.getInt("m.teamHomeFormation"), 
+						res.getInt("m.teamAwayFormation"),res.getInt("m.resultOfTeamHome"), res.getTimestamp("m.date").toLocalDateTime(), res.getString("t1.Name"),res.getString("t2.Name"));
+				
+				partite.add(match);
+
+			}
+			conn.close();
+			return partite;
+
+			
+		}catch(SQLException e ) {
+			System.out.println("Errore metodo listAllMatchesPerSquadra");
+		}
+		return null;
+	}
 }
