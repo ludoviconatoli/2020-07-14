@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -108,6 +109,7 @@ public class PremierLeagueDAO {
 
 			}
 			conn.close();
+			Collections.sort(result);
 			return result;
 			
 		} catch (SQLException e) {

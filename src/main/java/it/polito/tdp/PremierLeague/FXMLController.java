@@ -5,6 +5,7 @@
 package it.polito.tdp.PremierLeague;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import org.jgrapht.Graph;
@@ -12,6 +13,7 @@ import org.jgrapht.graph.DefaultWeightedEdge;
 
 import it.polito.tdp.PremierLeague.model.Model;
 import it.polito.tdp.PremierLeague.model.Team;
+import it.polito.tdp.PremierLeague.model.TeamAllaFine;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -52,7 +54,29 @@ public class FXMLController {
 
     @FXML
     void doClassifica(ActionEvent event) {
-
+    	this.txtResult.clear();
+    	Team squadra = this.cmbSquadra.getValue();
+    	int punteggio = this.model.getPunteggio(squadra);
+    	
+    	if(squadra != null && punteggio != 0) {
+    		this.txtResult.appendText("Hai scelto la squadra: " + squadra.toString() + ", punteggio: " + punteggio + "\n\n");
+    		
+    		List<TeamAllaFine> migliori = this.model.getSquadreMiglioriDi(squadra);
+    		this.txtResult.appendText("Squadre vincenti: \n");
+    		for(TeamAllaFine taf: migliori) {
+    			this.txtResult.appendText(taf.toString() + "\n");
+    		}
+    		
+    		
+    		List<TeamAllaFine> peggiori = this.model.getSquadrePeggioriDi(squadra);
+    		this.txtResult.appendText("\nSquadre battute: \n");
+    		for(TeamAllaFine taf: peggiori) {
+    			this.txtResult.appendText(taf.toString() + "\n");
+    		}
+    	}else {
+    		this.txtResult.appendText("Selezionare una squadra!");
+    		return;
+    	}
     }
 
     @FXML
@@ -87,5 +111,6 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	this.txtResult.setStyle("-fx-font-family: monospace");
     }
 }
