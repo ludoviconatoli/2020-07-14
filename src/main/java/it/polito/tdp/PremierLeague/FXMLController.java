@@ -95,7 +95,31 @@ public class FXMLController {
 
     @FXML
     void doSimula(ActionEvent event) {
+    	this.txtResult.clear();
+    	int n;
+    	int x;
+    	
+    	try {
+    		x = Integer.parseInt(this.txtX.getText());
+    	}catch(NumberFormatException e) {
+    		this.txtResult.setText("La soglia deve essere un numero");
+    		return;
+    	}
+    	
 
+    	try {
+    		n = Integer.parseInt(this.txtN.getText());
+    	}catch(NumberFormatException e) {
+    		this.txtResult.setText("N deve essere un numero");
+    		return;
+    	}
+    	
+    	this.model.init(n, x);
+    	this.model.run();
+    	
+    	this.txtResult.appendText("Simulazione: \n");
+    	this.txtResult.appendText("#partite critiche: " + this.model.getNumeroPartiteCritiche() +"\n");
+    	this.txtResult.appendText("#reporter per partita: " +this.model.getNumeroReporterPerPartita() );
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete

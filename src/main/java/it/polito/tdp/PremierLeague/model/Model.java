@@ -140,15 +140,18 @@ public class Model {
 		return 0;
 	}
 	
-	List<Match> partite = new ArrayList<>(this.dao.listAllMatches());
+	List<Match> partite = new ArrayList<>();
 	private int N;
 	private int X;
 	private Map<Team, Integer> reporterPerSquadra;
+	private int totaleReporter = 0;
 	
 	private int reporterPerPartita = 0;
 	private int numPartiteCritiche = 0;
+	private int numPartiteGiocate = 0;
 	
 	public void init(int N, int X) {
+		this.partite.addAll(this.dao.listAllMatches());
 		this.reporterPerSquadra = new HashMap<>();
 		this.N = N;
 		this.X = X;
@@ -161,8 +164,12 @@ public class Model {
 	public void run() {
 		for(Match m: this.partite) {
 			if(m.getReaultOfTeamHome() > 0) {
+				this.numPartiteGiocate++;
+				int reporter = 0;
+				Team home = this.getTeam(m.getTeamHomeID());;
+				Team away = this.getTeam(m.getTeamAwayID());;
+				
 				if(Math.random() > 0.5) {
-					Team home = this.getTeam(m.getTeamHomeID());
 					
 					this.reporterPerSquadra.put(home, this.reporterPerSquadra.get(home) - 1);
 					
@@ -172,8 +179,12 @@ public class Model {
 					
 				}
 				
+				reporter += this.reporterPerSquadra.get(home);
+				this.totaleReporter += reporter;
+				
+				
 				if(Math.random() > 0.8) {
-					Team away = this.getTeam(m.getTeamAwayID());
+		
 					int reporterPerdenti = (int)Math.random()*this.N;
 					
 					this.reporterPerSquadra.put(away, this.reporterPerSquadra.get(away) - reporterPerdenti);
@@ -181,10 +192,73 @@ public class Model {
 					Team peggiore = this.getPeggioreDi(away);
 					
 					this.reporterPerSquadra.put(peggiore, this.reporterPerSquadra.get(peggiore) + reporterPerdenti);
+					
 				}
+				
+				reporter += this.reporterPerSquadra.get(away);
+				this.totaleReporter += reporter;
+				
+				if(reporter < this.X) {
+					this.numPartiteCritiche++;
+				}
+				
+				this.reporterPerPartita = this.totaleReporter/this.numPartiteGiocate;
+				
 			}else if(m.getReaultOfTeamHome() < 0) {
-				//MANCA LA PARTE IN CUI PERDA IL TEAM DI CASA E
-				//MANCA LA GESTIONE DEI RISULTATI DA STAMPARE
+				//PERDE LA CASA
+				this.numPartiteGiocate++;
+				int reporter = 0;
+				Team away = this.getTeam(m.getTeamAwayID());;
+				Team home = this.getTeam(m.getTeamHomeID());;
+				
+				if(Math.random() > 0.5) {
+					
+					this.reporterPerSquadra.put(away, this.reporterPerSquadra.get(away) - 1);
+					
+					Team migliore = this.getMiglioreDi(away);
+					
+					this.reporterPerSquadra.put(migliore, this.reporterPerSquadra.get(migliore) + 1);
+					
+				}
+				
+				reporter += this.reporterPerSquadra.get(away);
+				this.totaleReporter += reporter;
+				
+				if(Math.random() > 0.8) {
+					
+					int reporterPerdenti = (int)Math.random()*this.N;
+					
+					this.reporterPerSquadra.put(home, this.reporterPerSquadra.get(home) - reporterPerdenti);
+					
+					Team peggiore = this.getPeggioreDi(home);
+					
+					this.reporterPerSquadra.put(peggiore, this.reporterPerSquadra.get(peggiore) + reporterPerdenti);
+					
+				}
+				
+				reporter += this.reporterPerSquadra.get(home);
+				this.totaleReporter += reporter;
+				
+				if(reporter < this.X) {
+					this.numPartiteCritiche++;
+				}
+				
+				this.reporterPerPartita = this.totaleReporter/this.numPartiteGiocate;
+				
+			}else {
+				this.numPartiteGiocate++;
+				Team home = this.getTeam(m.getTeamHomeID());
+				Team away = this.getTeam(m.getTeamAwayID());
+				
+				int reporter = this.reporterPerSquadra.get(home) + this.reporterPerSquadra.get(away);
+				this.totaleReporter += reporter;
+				
+				if(reporter < this.X) {
+					this.numPartiteCritiche++;
+				}
+				
+				this.reporterPerPartita = this.totaleReporter/this.numPartiteGiocate;
+				
 			}
 		}
 	}
@@ -221,5 +295,13 @@ public class Model {
 				return taf.getTeam();
 		
 		return this.listaSquadre.get(0).getTeam();
+	}
+	
+	public int getNumeroPartiteCritiche() {
+		return this.numPartiteCritiche;
+	}
+	
+	public int getNumeroReporterPerPartita() {
+		return this.reporterPerPartita;
 	}
 }
